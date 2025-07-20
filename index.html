@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Digital Kelas II A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .student-card {
+            transition: all 0.3s ease;
+        }
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .status-btn {
+            transition: all 0.2s ease;
+        }
+        .status-btn:hover {
+            transform: scale(1.05);
+        }
+        .status-btn.active {
+            border-width: 2px;
+            font-weight: 600;
+        }
+        .calendar-day {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .calendar-day:hover:not(.empty) {
+            background-color: #e0e7ff;
+        }
+        .calendar-day.selected {
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 50%;
+        }
+        .calendar-day.empty {
+            background-color: transparent;
+            cursor: default;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background-color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <div class="mr-4">
+                            <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M32 8L56 20V44L32 56L8 44V20L32 8Z" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+                                <path d="M32 8V32M32 32V56M32 32L8 20M32 32L56 20" stroke="#4338ca" stroke-width="2"/>
+                                <path d="M20 28H44M20 36H44" stroke="#4338ca" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold">SD Laboratorium UPI</h1>
+                            <p class="text-sm">Kampus Tasikmalaya</p>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-right">
+                        <h2 class="text-xl font-semibold">Absensi Digital Kelas II A</h2>
+                        <p>Wali Kelas: Nisrina Haifa, M.Pd.</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-white shadow-md no-print">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-center">
+                    <button id="nav-attendance" class="nav-btn px-6 py-4 font-medium text-indigo-600 border-b-2 border-indigo-600">Absensi Harian</button>
+                    <button id="nav-report" class="nav-btn px-6 py-4 font-medium text-gray-500 hover:text-indigo-600">Rekap Kehadiran</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page 1: Daily Attendance -->
+        <div id="page-attendance" class="page active container mx-auto px-4 py-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-lg font-semibold text-gray-700">Tanggal:</h3>
+                        <div class="flex items-center">
+                            <input type="date" id="attendance-date" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="">
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="btn-all-present" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-all">
+                            <span class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Hadir Semua
+                            </span>
+                        </button>
+                        <button id="btn-holiday" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-all">
+                            <span class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Tandai Libur
+                            </span>
+                        </button>
+                        <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md transition-all">
+                            <span class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Reset
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="student-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Student cards will be generated here -->
+            </div>
+        </div>
+
+        <!-- Page 2: Attendance Report -->
+        <div id="page-report" class="page container mx-auto px-4 py-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-lg font-semibold text-gray-700">Rekap Kehadiran:</h3>
+                        <div class="flex items-center space-x-2">
+                            <select id="report-month" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="0">Januari</option>
+                                <option value="1">Februari</option>
+                                <option value="2">Maret</option>
+                                <option value="3">April</option>
+                                <option value="4">Mei</option>
+                                <option value="5">Juni</option>
+                                <option value="6">Juli</option>
+                                <option value="7">Agustus</option>
+                                <option value="8">September</option>
+                                <option value="9">Oktober</option>
+                                <option value="10">November</option>
+                                <option value="11">Desember</option>
+                            </select>
+                            <select id="report-year" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="2023">2023</option>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 no-print">
+                        <button id="btn-print" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md transition-all">
+                            <span class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                </svg>
+                                Cetak
+                            </span>
+                        </button>
+                        <button id="btn-export" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-all">
+                            <span class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                Export
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 overflow-x-auto">
+                <div class="print-header hidden print-only mb-6">
+                    <div class="text-center mb-4">
+                        <h1 class="text-xl font-bold">SD Laboratorium UPI Kampus Tasikmalaya</h1>
+                        <h2 class="text-lg">Rekap Kehadiran Kelas II A</h2>
+                        <p>Wali Kelas: Nisrina Haifa, M.Pd.</p>
+                        <p id="print-period" class="font-medium"></p>
+                    </div>
+                </div>
+                
+                <table class="min-w-full border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="border px-4 py-2 bg-gray-100 text-left">No</th>
+                            <th class="border px-4 py-2 bg-gray-100 text-left">Nama Siswa</th>
+                            <th id="calendar-header" class="border px-4 py-2 bg-gray-100 text-center" colspan="31">
+                                <div class="flex justify-center items-center">
+                                    <span id="month-year-display" class="font-medium"></span>
+                                </div>
+                            </th>
+                            <th class="border px-4 py-2 bg-gray-100 text-center">H</th>
+                            <th class="border px-4 py-2 bg-gray-100 text-center">I</th>
+                            <th class="border px-4 py-2 bg-gray-100 text-center">S</th>
+                            <th class="border px-4 py-2 bg-gray-100 text-center">A</th>
+                            <th class="border px-4 py-2 bg-gray-100 text-center">L</th>
+                        </tr>
+                        <tr id="date-header">
+                            <th class="border px-4 py-2 bg-gray-50" colspan="2"></th>
+                            <!-- Date headers will be generated here -->
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body">
+                        <!-- Report data will be generated here -->
+                    </tbody>
+                </table>
+                
+                <div class="mt-8 text-right print-only hidden">
+                    <p>Tasikmalaya, <span id="print-date"></span></p>
+                    <p class="mt-16">Nisrina Haifa, M.Pd.</p>
+                    <p>Wali Kelas II A</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Student data with photo storage
+        let students = [
+            { id: 1, name: "Abizhar Rasendriya Gandana", photo: null },
+            { id: 2, name: "Almira Fatima Zahra", photo: null },
+            { id: 3, name: "Arsakha Ramadhan Sakan", photo: null },
+            { id: 4, name: "Daisha Almahyra", photo: null },
+            { id: 5, name: "Darren Janio Haidar", photo: null },
+            { id: 6, name: "Dhanu Ramadinata Andrian", photo: null },
+            { id: 7, name: "Ezra Tsaqib Alfarezel", photo: null },
+            { id: 8, name: "Fanita Ardelia Putri", photo: null },
+            { id: 9, name: "Fathan Zafa Alfarizi", photo: null },
+            { id: 10, name: "Frizzi Faezya Suhendi", photo: null },
+            { id: 11, name: "Gilby Alkhalifi Santoso", photo: null },
+            { id: 12, name: "Jasmine Ayunindya Barliana", photo: null },
+            { id: 13, name: "Khaleesya Almeera Ramadhani", photo: null },
+            { id: 14, name: "Maulana Khandra Yuwono", photo: null },
+            { id: 15, name: "Mochammad Habilal Bagia Nurali", photo: null },
+            { id: 16, name: "Muhammad Alby Arskha Arifin", photo: null },
+            { id: 17, name: "Muhammad Arshaka Ransi Alden", photo: null },
+            { id: 18, name: "Muhammad Fadlan Hidayatullah", photo: null },
+            { id: 19, name: "Naysa Wulandhari Putri Al Jiane", photo: null },
+            { id: 20, name: "Shireen Alexa Fansury", photo: null },
+            { id: 21, name: "Stevania Aubrianne Imola", photo: null },
+            { id: 22, name: "Syabia Putri Yunus", photo: null },
+            { id: 23, name: "Zayn Putra Alhabsyu", photo: null },
+            { id: 24, name: "Zeeya Malika Asha Qudsiyah", photo: null }
+        ];
+
+        // Attendance data storage
+        let attendanceData = {};
+        // Holiday data storage
+        let holidayData = {};
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load stored data first (before generating UI)
+            loadStoredData();
+            
+            // Set today's date as default
+            const today = new Date();
+            const dateInput = document.getElementById('attendance-date');
+            dateInput.valueAsDate = today;
+            
+            // Set current month and year for report
+            document.getElementById('report-month').value = today.getMonth();
+            document.getElementById('report-year').value = today.getFullYear();
+
+            // Generate student cards
+            generateStudentCards();
+            
+            // Set up navigation
+            setupNavigation();
+            
+            // Set up buttons
+            setupButtons();
+            
+            // Load initial attendance data
+            loadAttendanceData();
+        });
+
+        // Load all stored data from localStorage
+        function loadStoredData() {
+            // Load student photos
+            const storedPhotos = localStorage.getItem('studentPhotos');
+            if (storedPhotos) {
+                const photoData = JSON.parse(storedPhotos);
+                photoData.forEach(item => {
+                    const studentIndex = students.findIndex(s => s.id === item.id);
+                    if (studentIndex !== -1 && item.photo) {
+                        students[studentIndex].photo = item.photo;
+                    }
+                });
+            }
+            
+            // Load attendance data
+            const storedAttendance = localStorage.getItem('attendanceData');
+            if (storedAttendance) {
+                attendanceData = JSON.parse(storedAttendance);
+            }
+            
+            // Load holiday data
+            const storedHolidays = localStorage.getItem('holidayData');
+            if (storedHolidays) {
+                holidayData = JSON.parse(storedHolidays);
+            }
+        }
+
+        // Save student photos to localStorage
+        function saveStudentPhotos() {
+            const photoData = students.map(student => ({
+                id: student.id,
+                photo: student.photo
+            }));
+            localStorage.setItem('studentPhotos', JSON.stringify(photoData));
+        }
+
+        // Save holiday data to localStorage
+        function saveHolidayData() {
+            localStorage.setItem('holidayData', JSON.stringify(holidayData));
+        }
+
+        // Generate student cards for daily attendance
+        function generateStudentCards() {
+            const container = document.getElementById('student-cards-container');
+            container.innerHTML = '';
+            
+            students.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card bg-white rounded-lg shadow-md overflow-hidden';
+                card.dataset.id = student.id;
+                
+                const photoPlaceholder = student.photo ? 
+                    `<img src="${student.photo}" alt="${student.name}" class="w-full h-40 object-cover">` :
+                    `<div class="w-full h-40 bg-gray-200 flex items-center justify-center">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <label class="cursor-pointer mt-2 inline-block px-3 py-1 bg-indigo-500 text-white rounded-md text-sm hover:bg-indigo-600 transition-colors">
+                                Upload Foto
+                                <input type="file" class="hidden photo-upload" accept="image/*" data-id="${student.id}">
+                            </label>
+                        </div>
+                    </div>`;
+                
+                card.innerHTML = `
+                    <div class="photo-container">
+                        ${photoPlaceholder}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-gray-800 mb-2">${student.name}</h3>
+                        <div class="grid grid-cols-2 gap-1 mt-3">
+                            <button class="status-btn hadir px-2 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-green-100 hover:text-green-700" data-status="hadir">Hadir</button>
+                            <button class="status-btn izin px-2 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-yellow-100 hover:text-yellow-700" data-status="izin">Izin</button>
+                            <button class="status-btn sakit px-2 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-700" data-status="sakit">Sakit</button>
+                            <button class="status-btn libur px-2 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700" data-status="libur">Libur</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+                
+                // Set up photo upload
+                const fileInput = card.querySelector('.photo-upload');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                const studentId = parseInt(e.target.dataset.id);
+                                const photoContainer = card.querySelector('.photo-container');
+                                photoContainer.innerHTML = `<img src="${event.target.result}" alt="${student.name}" class="w-full h-40 object-cover">`;
+                                
+                                // Save photo to student data
+                                const studentIndex = students.findIndex(s => s.id === studentId);
+                                if (studentIndex !== -1) {
+                                    students[studentIndex].photo = event.target.result;
+                                    // Save photos to localStorage immediately
+                                    saveStudentPhotos();
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+                
+                // Set up status buttons
+                const statusButtons = card.querySelectorAll('.status-btn');
+                statusButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const studentId = parseInt(card.dataset.id);
+                        const status = btn.dataset.status;
+                        const dateStr = document.getElementById('attendance-date').value;
+                        
+                        // Remove active class from all buttons in this card
+                        card.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+                        
+                        // Add active class to clicked button
+                        btn.classList.add('active');
+                        
+                        // Update attendance data
+                        if (!attendanceData[dateStr]) {
+                            attendanceData[dateStr] = {};
+                        }
+                        attendanceData[dateStr][studentId] = status;
+                        
+                        // If marking as holiday, update holiday data
+                        if (status === 'libur') {
+                            if (!holidayData[dateStr]) {
+                                holidayData[dateStr] = true;
+                                saveHolidayData();
+                            }
+                        }
+                        
+                        // Save to localStorage
+                        saveAttendanceData();
+                    });
+                });
+            });
+        }
+
+        // Set up navigation between pages
+        function setupNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const pages = document.querySelectorAll('.page');
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetId = this.id.replace('nav-', 'page-');
+                    
+                    // Update navigation buttons
+                    navButtons.forEach(b => {
+                        b.classList.remove('border-indigo-600', 'text-indigo-600');
+                        b.classList.add('text-gray-500');
+                    });
+                    this.classList.remove('text-gray-500');
+                    this.classList.add('border-indigo-600', 'text-indigo-600');
+                    
+                    // Show target page
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                        if (page.id === targetId) {
+                            page.classList.add('active');
+                            
+                            // Update report if showing report page
+                            if (targetId === 'page-report') {
+                                updateReport();
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        // Set up action buttons
+        function setupButtons() {
+            const dateInput = document.getElementById('attendance-date');
+            
+            // Date change event
+            dateInput.addEventListener('change', loadAttendanceData);
+            
+            // "All Present" button
+            document.getElementById('btn-all-present').addEventListener('click', function() {
+                const dateStr = dateInput.value;
+                if (!attendanceData[dateStr]) {
+                    attendanceData[dateStr] = {};
+                }
+                
+                // Mark all students as present
+                students.forEach(student => {
+                    attendanceData[dateStr][student.id] = 'hadir';
+                });
+                
+                // Update UI
+                document.querySelectorAll('.student-card').forEach(card => {
+                    // Remove active class from all buttons
+                    card.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to "Hadir" button
+                    const hadirBtn = card.querySelector('.status-btn.hadir');
+                    hadirBtn.classList.add('active');
+                });
+                
+                // Save to localStorage
+                saveAttendanceData();
+            });
+            
+            // "Mark as Holiday" button
+            document.getElementById('btn-holiday').addEventListener('click', function() {
+                const dateStr = dateInput.value;
+                if (!attendanceData[dateStr]) {
+                    attendanceData[dateStr] = {};
+                }
+                
+                // Mark all students as on holiday
+                students.forEach(student => {
+                    attendanceData[dateStr][student.id] = 'libur';
+                });
+                
+                // Mark this date as a holiday
+                holidayData[dateStr] = true;
+                saveHolidayData();
+                
+                // Update UI
+                document.querySelectorAll('.student-card').forEach(card => {
+                    // Remove active class from all buttons
+                    card.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to "Libur" button
+                    const liburBtn = card.querySelector('.status-btn.libur');
+                    liburBtn.classList.add('active');
+                });
+                
+                // Save to localStorage
+                saveAttendanceData();
+            });
+            
+            // Reset button
+            document.getElementById('btn-reset').addEventListener('click', function() {
+                const dateStr = dateInput.value;
+                if (attendanceData[dateStr]) {
+                    delete attendanceData[dateStr];
+                }
+                
+                // Remove holiday marking if exists
+                if (holidayData[dateStr]) {
+                    delete holidayData[dateStr];
+                    saveHolidayData();
+                }
+                
+                // Update UI
+                document.querySelectorAll('.student-card').forEach(card => {
+                    card.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+                });
+                
+                // Save to localStorage
+                saveAttendanceData();
+            });
+            
+            // Print button
+            document.getElementById('btn-print').addEventListener('click', function() {
+                const month = parseInt(document.getElementById('report-month').value);
+                const year = parseInt(document.getElementById('report-year').value);
+                const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                // Set print information
+                document.getElementById('print-period').textContent = `Bulan: ${monthNames[month]} ${year}`;
+                
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                document.getElementById('print-date').textContent = new Date().toLocaleDateString('id-ID', options);
+                
+                // Print
+                window.print();
+            });
+            
+            // Export button
+            document.getElementById('btn-export').addEventListener('click', function() {
+                const month = parseInt(document.getElementById('report-month').value);
+                const year = parseInt(document.getElementById('report-year').value);
+                const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                // Create CSV content
+                let csv = 'No,Nama Siswa';
+                
+                // Add date headers
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let i = 1; i <= daysInMonth; i++) {
+                    csv += `,${i}`;
+                }
+                csv += ',Hadir,Izin,Sakit,Alpha,Libur\n';
+                
+                // Add student data
+                students.forEach((student, index) => {
+                    let row = `${index + 1},"${student.name}"`;
+                    
+                    let hadirCount = 0;
+                    let izinCount = 0;
+                    let sakitCount = 0;
+                    let alphaCount = 0;
+                    let liburCount = 0;
+                    
+                    // Add attendance status for each day
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        let status = '';
+                        
+                        if (attendanceData[dateStr] && attendanceData[dateStr][student.id]) {
+                            const studentStatus = attendanceData[dateStr][student.id];
+                            if (studentStatus === 'hadir') {
+                                status = 'H';
+                                hadirCount++;
+                            } else if (studentStatus === 'izin') {
+                                status = 'I';
+                                izinCount++;
+                            } else if (studentStatus === 'sakit') {
+                                status = 'S';
+                                sakitCount++;
+                            } else if (studentStatus === 'libur') {
+                                status = 'L';
+                                liburCount++;
+                            }
+                        } else {
+                            // Check if this date is in the past
+                            const currentDate = new Date();
+                            const checkDate = new Date(year, month, day);
+                            
+                            if (checkDate < currentDate && checkDate.toDateString() !== currentDate.toDateString() && !holidayData[dateStr]) {
+                                status = 'A';
+                                alphaCount++;
+                            } else if (holidayData[dateStr]) {
+                                status = 'L';
+                                liburCount++;
+                            }
+                        }
+                        
+                        row += `,${status}`;
+                    }
+                    
+                    // Add summary counts
+                    row += `,${hadirCount},${izinCount},${sakitCount},${alphaCount},${liburCount}`;
+                    
+                    csv += row + '\n';
+                });
+                
+                // Create and download CSV file
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `Absensi_Kelas_II_A_${monthNames[month]}_${year}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            // Report month/year change
+            document.getElementById('report-month').addEventListener('change', updateReport);
+            document.getElementById('report-year').addEventListener('change', updateReport);
+        }
+
+        // Load attendance data for the selected date
+        function loadAttendanceData() {
+            const dateStr = document.getElementById('attendance-date').value;
+            
+            // Reset all status buttons
+            document.querySelectorAll('.student-card').forEach(card => {
+                card.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+            });
+            
+            // If we have data for this date, update the UI
+            if (attendanceData[dateStr]) {
+                Object.entries(attendanceData[dateStr]).forEach(([studentId, status]) => {
+                    const card = document.querySelector(`.student-card[data-id="${studentId}"]`);
+                    if (card) {
+                        const btn = card.querySelector(`.status-btn.${status}`);
+                        if (btn) {
+                            btn.classList.add('active');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Save attendance data to localStorage
+        function saveAttendanceData() {
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+        }
+
+        // Update the monthly report
+        function updateReport() {
+            const month = parseInt(document.getElementById('report-month').value);
+            const year = parseInt(document.getElementById('report-year').value);
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            // Update month-year display
+            document.getElementById('month-year-display').textContent = `${monthNames[month]} ${year}`;
+            
+            // Generate date headers
+            const dateHeader = document.getElementById('date-header');
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Clear existing headers
+            while (dateHeader.children.length > 2) {
+                dateHeader.removeChild(dateHeader.lastChild);
+            }
+            
+            // Add date headers
+            for (let i = 1; i <= daysInMonth; i++) {
+                const th = document.createElement('th');
+                th.className = 'border px-1 py-1 bg-gray-50 text-center text-xs';
+                th.textContent = i;
+                dateHeader.appendChild(th);
+            }
+            
+            // Add summary headers
+            const summaryHeaders = ['H', 'I', 'S', 'A', 'L'];
+            summaryHeaders.forEach(() => {
+                const th = document.createElement('th');
+                th.className = 'border px-1 py-1 bg-gray-50';
+                dateHeader.appendChild(th);
+            });
+            
+            // Update calendar header colspan
+            document.getElementById('calendar-header').colSpan = daysInMonth;
+            
+            // Generate report table body
+            const tableBody = document.getElementById('report-table-body');
+            tableBody.innerHTML = '';
+            
+            students.forEach((student, index) => {
+                const row = document.createElement('tr');
+                
+                // Add student number and name
+                const numCell = document.createElement('td');
+                numCell.className = 'border px-4 py-2';
+                numCell.textContent = index + 1;
+                row.appendChild(numCell);
+                
+                const nameCell = document.createElement('td');
+                nameCell.className = 'border px-4 py-2';
+                nameCell.textContent = student.name;
+                row.appendChild(nameCell);
+                
+                // Add attendance cells for each day
+                let hadirCount = 0;
+                let izinCount = 0;
+                let sakitCount = 0;
+                let alphaCount = 0;
+                let liburCount = 0;
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const cell = document.createElement('td');
+                    cell.className = 'border px-1 py-1 text-center text-sm';
+                    
+                    if (attendanceData[dateStr] && attendanceData[dateStr][student.id]) {
+                        const status = attendanceData[dateStr][student.id];
+                        if (status === 'hadir') {
+                            cell.textContent = 'H';
+                            cell.classList.add('bg-green-50', 'text-green-700');
+                            hadirCount++;
+                        } else if (status === 'izin') {
+                            cell.textContent = 'I';
+                            cell.classList.add('bg-yellow-50', 'text-yellow-700');
+                            izinCount++;
+                        } else if (status === 'sakit') {
+                            cell.textContent = 'S';
+                            cell.classList.add('bg-orange-50', 'text-orange-700');
+                            sakitCount++;
+                        } else if (status === 'libur') {
+                            cell.textContent = 'L';
+                            cell.classList.add('bg-blue-50', 'text-blue-700');
+                            liburCount++;
+                        }
+                    } else {
+                        // Check if this date is a holiday
+                        if (holidayData[dateStr]) {
+                            cell.textContent = 'L';
+                            cell.classList.add('bg-blue-50', 'text-blue-700');
+                            liburCount++;
+                        } else {
+                            // Check if this date is in the past
+                            const currentDate = new Date();
+                            const checkDate = new Date(year, month, day);
+                            
+                            if (checkDate < currentDate && checkDate.toDateString() !== currentDate.toDateString()) {
+                                cell.textContent = 'A';
+                                cell.classList.add('bg-red-50', 'text-red-700');
+                                alphaCount++;
+                            } else {
+                                cell.textContent = '-';
+                            }
+                        }
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                // Add summary cells
+                const summaries = [
+                    { count: hadirCount, color: 'green' },
+                    { count: izinCount, color: 'yellow' },
+                    { count: sakitCount, color: 'orange' },
+                    { count: alphaCount, color: 'red' },
+                    { count: liburCount, color: 'blue' }
+                ];
+                
+                summaries.forEach(summary => {
+                    const cell = document.createElement('td');
+                    cell.className = `border px-2 py-2 text-center font-medium bg-${summary.color}-50 text-${summary.color}-700`;
+                    cell.textContent = summary.count;
+                    row.appendChild(cell);
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9620a24e2405ec6e',t:'MTc1Mjk5NTM3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
